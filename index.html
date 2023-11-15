@@ -44,26 +44,35 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-primary {
-            position: relative;
-            display: inline-block;
-            box-sizing: border-box;
-            margin: 0 2px;
-            padding: 10px 0;
-            height: 40px;
-            border-radius: 8px px;
-            color: #00aeec;
+        .btn {
+            background-color: #1795bb;
+            border-radius: 12px;
+            border: none;
+            color: white;
+            padding: 16px 32px;
             text-align: center;
-            letter-spacing: 0;
-            font-size: 0;
-            line-height: 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            -webkit-transition-duration: 0.4s;
+            transition-duration: 0.4s;
             cursor: pointer;
-            transition: background-color .3s, color .3s;
-            font-weight: 600;
+        }
+
+        .btn:hover {
+            background-color: #fff;
+            color: #1795bb;
+            border: 1px solid #ccc;
         }
 
         .copy {
             margin-right: 1rem;
+        }
+
+        .btn-group {
+            display: inline-flex;
+            align-items: center;
         }
     </style>
     <script src="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -78,8 +87,8 @@
         <div id="response">
         </div>
         <div class="btn-group">
-            <button id="copy" class="btn-primary"></button>
-            <button id="reload" class="btn-primary" style="background-color: #ccc;"
+            <button id="copy" class="btn"></button>
+            <button id="reload" class="btn" style="background-color: #ccc;"
                 onclick="window.location.reload();">刷新</button>
         </div>
     </div>
