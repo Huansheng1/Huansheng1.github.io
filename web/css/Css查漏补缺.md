@@ -118,3 +118,10 @@ iPhone的 devicePixelRatio==2，而 border-width: 1px; 描述的是设备独立�
 例如： 在`css`的`Url`后面加上参数`version=1.0.0`，每次提交时修改一下版本号就可以了
 ```html
 <link rel="stylesheet" type="text/css" href="../style/css/common-red.css?version=1.0.0">
+```
+
+### 如何使用Css隐藏一个元素？
+1. display: none;：元素不会被渲染
+2. visibility: hidden;：隐藏元素，但元素仍然占据页面布局空间。虽然元素不可见，但它仍然存在于文档流中，并且会影响其他元素的布局。
+3. opacity: 0;：使元素完全透明，但仍然占据页面布局空间。与 visibility: hidden; 不同，元素是可见的，但是完全透明。
+4. position: absolute; left: -9999px;：将元素移出页面，但保留在文档流中。元素仍然占据页面布局空间，但位置被隐藏。

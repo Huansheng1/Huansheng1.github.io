@@ -91,5 +91,7 @@
 * [JavaScript基础-刷题补缺](./article/JavaScript基础-刷题补缺.md)
 * [PicGo自定义图床](./article/PicGo自定义图床.md)
 * [VSCode使用与配置](./article/VSCode使用与配置.md)
+## 浏览器相关
+* [学习记录](./web/browser/README.md)
 ## 个人工具
 * [工具](./tools/README.md)
