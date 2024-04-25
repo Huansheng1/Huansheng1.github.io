@@ -2,7 +2,7 @@
 
 ## 基础知识
 
-### [老版复习基础笔记/备忘录](https://mubu.com/doc/cXz3tH_Ve7)
+### [基础笔记/备忘录](https://www.mubu.com/doc/cXz3tH_Ve7)
 
 ### [switch问题](switch问题.md)
 

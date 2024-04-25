@@ -2,6 +2,6 @@
 
 ## 基础
 
-### [黑马复习的笔记](https://mubu.com/doc/8_mc-BV7V_ '幕布缝合怪笔记')
+### [基础的学习笔记](https://www.mubu.com/doc/Arm4zgHB97)
 
 ### [html节点类型和特殊属性](html节点类型和特殊属性.md)
