@@ -1,7 +1,7 @@
 # Vue.js
 
 ## 基础
-### [Vue2.x基础](/)
+### [Vue2.x基础](https://huansheng1.github.io/vue-2.html)
 ### [Vue3.x基础](./Vue3.x)
 ## 进阶
 ### [vue.config.js配置](vue.config配置.md)
