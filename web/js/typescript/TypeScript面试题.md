@@ -59,3 +59,31 @@ x = 10;
 // 类型推断
 let y = 20; // TypeScript会自动推断y的类型为number
 ```
+
+### type 和 interface 的区别
+
+在 TypeScript 中，interface 和 type 都可以用来描述对象或函数的类型。
+
+1. 扩展性：interface 可以通过名称相同的方式进行扩展，而 type 则不能。这意味着你可以创建一个新的 interface，并使用相同的名称，TypeScript 会将这两个 interface 合并为一个。这对于定义像 React.ComponentProps 这样的全局状态非常有用。
+```ts
+interface User {
+    name: string
+}
+
+interface User {
+    age: number
+}
+
+// User 现在有了 name 和 age 属性
+```
+2. 使用 type 可以表示更复杂的类型：除了可以表示对象和函数的类型，type 还可以表示基本类型（如 string，number），元组，联合类型，交叉类型等。
+```ts
+type StringOrNumber = string | number;
+```
+
+3. 在声明类和接口时，interface 更常用：当你想要定义一个类或者一个接口的时候，通常会使用 interface。
+
+4. type 只是一个类型别名，并不会真的产生类型，它给一个已经存在的类型起了一个新的名字，但并没有创建一个新的类型。而 interface 则可以被视为一个新的类型，因为你可以使用 interface 创建一个具有特定属性和方法的新对象类型。
+### 实现一个 Typescript 里的 Pick
+> type Pick<T, K extends keyof T> = { [P in K]: T[P] }
+
