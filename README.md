@@ -58,6 +58,8 @@
 * [Webpack学习记录](./web/webpack/README.md)
 ### 微前端
 * [微前端学习记录](./web/微前端/README.md)
+### 项目开发随笔
+* [过往开发项目的经验随笔](./web/project-tips/README.md)
 ### 面试准备
 * [面试题记录](./web/interview-ready/README.md)
 ## markdown语法

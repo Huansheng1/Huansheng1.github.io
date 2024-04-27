@@ -5,3 +5,7 @@
 
 ## 求最大公共前缀，如 ['aaafsd', 'aawwewer', 'aaddfff'] => 'aa'
 
+
+## 来源
+* 自己面试
+* [前端学数据结构与算法](https://juejin.cn/user/3087084380239341/posts)
