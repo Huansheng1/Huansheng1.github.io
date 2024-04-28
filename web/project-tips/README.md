@@ -147,9 +147,69 @@ rem 或者 vw、vh 来适配
 ### 场景
 进入页面的时候，依次弹出新人引导、升级弹窗、权益弹窗以及其他。 弹窗的优先级后期可能改为后台配置，目前是前端写死。
 ### 解决方案
+#### Promise链式调用
 1. 首先我们应该在当前的页面先通过接口获取到弹窗数据，并先按优先级排序好
-2. 然后我们要定义一个全局的弹框服务类，传入弹框要显示的参数 或者 传入 组件引用，通过弹框服务创建弹框，弹框服务返回弹框实例，通过实例拿到 确认、关闭状态 以及 可能要返回的数据 或者 手动通过实例来关闭弹框。（其实在 Angular里的 ng-bootstrap里就是这个思路）
-3. 使用这个全局弹框服务，依次弹框来控制即可。
+2. 然后我们要定义一个全局的弹框服务类，传入弹框要显示的参数 或者 传入 组件引用，通过弹框服务创建弹框，弹框服务返回弹框实例，它的接口都是Promise形式的，通过实例拿到 确认、关闭状态 以及 可能要返回的数据 或者 手动通过实例来关闭弹框。（其实在 Angular里的 [ng-bootstrap](https://ng-bootstrap.github.io/#/components/modal/examples)里就是这个思路）
+3. 使用这个全局弹框服务返回的Promise接口，链式调用，依次弹出弹框来控制即可。
+#### 责任链模式
+> [一文带你玩转设计模式之「责任链」](https://juejin.cn/post/6895894824415657991?searchId=20240427185019C12489990578882BC727)
+> [浅谈对责任链模式的理解？应用场景？](https://juejin.cn/post/7136896811767169054?searchId=20240427185019C12489990578882BC727)
+> [前端设计模式之责任链模式](https://juejin.cn/post/6854573219400122376?searchId=20240427185019C12489990578882BC727)
+
+> 常见的流程如下：
+
+* 发送者知道链中的第一个接受者，它向这个接受者发出请求
+* 每一个接受者都对请求进行分析，要么处理它，要么往下传递
+* 每一个接受者知道的其他对象只有一个，即它的下家对象
+* 如果没有任何接受者处理请求，那么请求将从链上离开，不同的实现对此有不同的反应
+
+类似于 express 或者 koa 中间件的思路，创建了一个弹框处理链，再定义业务需要的 具体弹框处理器。每个处理器负责显示一个弹框，并设置下一个处理器。当调用dialog.show()时，它会依次弹出多个弹框，避免了重叠问题。
+```ts
+// 弹框处理器接口
+interface DialogHandler {
+  show(): void;
+  setNext(handler: DialogHandler): void;
+}
+
+// 具体弹框处理器
+class AlertDialogHandler implements DialogHandler {
+  private nextHandler: DialogHandler | null = null;
+
+  constructor(private message: string) {}
+
+  show(): void {
+    // 实际的弹框逻辑，例如使用Vue的弹框组件
+    console.log(`Showing alert dialog: ${this.message}`);
+    if (this.nextHandler) {
+      this.nextHandler.show();
+    }
+  }
+
+  setNext(handler: DialogHandler): void {
+    this.nextHandler = handler;
+  }
+}
+
+// 创建弹框处理链
+const dialogContents = ['第一个弹框','第二个弹框','第三个弹框'];
+let prevDialog: AlertDialogHandler|null = null, firstDialog: AlertDialogHandler|null = null;
+for (let i = 0; i < dialogContents.length; i++) {
+    let dialogContent:string = dialogContents[i];
+    let temDialog = new AlertDialogHandler(dialogContent);
+    if(prevDialog){
+        prevDialog.setNext(temDialog);
+    }else{
+        firstDialog = temDialog;
+    }
+    prevDialog = temDialog;
+}
+
+// 触发弹框处理链
+firstDialog.show(); // 依次弹出三个弹框
+```
+
+### 推荐文章
+* [vue3 配合 tsx 优雅的弹窗方案](https://juejin.cn/post/7250356064988725309)
 
 ## 假设一个页面有10个请求，但是进去了这个界面后，所有的请求全部报错了，请问 如果每个请求失败都对应一个请求失败的结果，比如 tip，dialog，左上角弹出 等n个形式，怎么调整解决这种显示的问题
 1. 如果是同一种，比如都是 message，每次显示的时候都关闭掉之前还在显示的，使用防抖或者互斥机制来确保只显示一个
@@ -277,13 +337,29 @@ threadPool.waitForAllTasks();
 
 ## 组件平台有哪些功能？
 
-## 网络请求在项目中一般该怎么封装？
-
-## 请求失败的时候，比如有多个请求失败，他们的提示信息不一样，有些是 弹框，有些是 tips，请问该怎么处理？
+## 网络请求在项目中一般该怎么封装？比如 axios如何封装？
 
 ## 你在项目中封装过哪些组件？
 
+## 在移动端开发（手机端）中，遇见过哪些问题？
+
 ## 单页面应用与多页面应用的区别
+
+## 大屏自适应
+1. 监听窗口大小变化事件onresize + 动态计算rem，耗时 而且对浏览器最小字体不支持
+2. 使用flex + 百分比布局
+3. 使用transform的scale动态计算，显示最佳，但是缩放影响地图焦点（[采用对地图再次应用scale，地图的scale值与body身上的scale值相乘等于1即可](https://juejin.cn/post/7133414529441988639?searchId=20240428191029F056C97666149022D5D8)）
+4. 使用vw/vh单位来实现
+5. zoom属性缩放
+
+## 懒加载组件的原理？
+
+## 你有大屏的项目吗？
+
+### flex和百分比底层是怎么做？
+
+## 微信扫码登录
+> [推荐](https://juejin.cn/post/7243413799347601464)
 
 ## 开源项目
 * [vue-vben-admin 基于Vue3的Vue后台管理框架](https://github.com/vbenjs/vue-vben-admin/blob/main/README.zh-CN.md)
