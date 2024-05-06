@@ -226,24 +226,22 @@ firstDialog.show(); // 依次弹出三个弹框
 3. 在后台上传图片的时候自动分析提取出来图片主要色值并保存到数据库，然后前端显示的时候，直接读取数据库中的色值，不需要再计算。缺点是 上传的时候会增加一些耗时，同时需要后端接口的支持。
 
 ## 项目重构优化是怎么做的？你在项目中如何做性能优化的？
+> [面试官：如何进行前端性能优化？](https://juejin.cn/post/7347504184068931619?searchId=20240505222414155D490528667CA09BA9#heading-13)
 
-1. 优化请求代码：减少并合并可以一次请求解决的问题，利用 状态共享 解决多个地方要使用同一份数据的问题；封装节流指令，解决多次触发的问题；封装图片懒加载指令，解决图片同一时间加载的问题；
-2. 对静态图片进行压缩，减少图片体积；
-3. 替换部分依赖包为其他体积更小的依赖，如 将 momentjs 替换为 dayjs
-4. 使用懒加载路由，使用分包机制，解决打包为一个文件的问题
-5. 使用 按需引入，利用 tree shaking 来减少打包体积
-6. 按需求封装 组件、指令 或者 ESModule模块，抽取公共代码
-7. 部分依赖库使用 link 标签引入，通过 cdn加速
-8. 根据项目需求调整目标浏览器版本的设置，比如：不需要支持IE浏览器的话，就可移除掉
-9. [组件异步加载，适用于 在某种条件才触发的组件，如：弹框组件](https://juejin.cn/post/7355096015584264192?searchId=20240426190827D5197D47E9C9C49D9C39)
+首先，我通过了 Performance、Lighthouse 以及 打包文件分析工具确定影响速度的主要瓶颈，然后进行了以下几个步骤的优化：
+1. 减小请求数量：减少并合并可以一次请求解决的问题，利用 状态共享 解决多个地方要使用同一份数据的问题；封装节流指令，解决多次触发的问题；封装图片懒加载指令，解决图片同一时间加载的问题；
+2. 优化资源体积：对静态图片进行压缩，减少图片体积；替换部分依赖包为其他体积更小的依赖，如 将 momentjs 替换为 dayjs
+3. 优化请求方式：调整 nginx配置，让协议改为 优先使用 http2，它的并发请求上限数更大，支持长链接，访问速度会更快
+4. 优化初次访问速度：使用懒加载路由和分包机制，避免一下子请求一整个打包后的JS文件；
+5. 去除无用代码：在使用组件库时 按需引入，利用 tree shaking 机制来减少打包体积；封装 组件、指令，抽取公共代码；根据项目需求调整目标浏览器版本的设置，比如：不需要支持IE浏览器的话，就可移除掉
+6. 利用cdn加速：部分依赖库或者不怎么变更的资源文件，可以使用 link 标签引入cdn资源地址
+7. [组件异步加载，适用于 在某种条件才触发的组件，如：弹框组件](https://juejin.cn/post/7355096015584264192?searchId=20240426190827D5197D47E9C9C49D9C39)
 ```js
 // vue 中实现异步加载组件
 import { reactive, ref, onMounted, computed, watch,defineAsyncComponent } from 'vue'
 const rule = defineAsyncComponent(() => (import('_c/rule')))
 ```
-10. 增加 loading动画、骨架屏等显示使得观感上更好
-11. 长列表使用虚拟滚动
-12. 如果可以的话，还可以调整 nginx配置，让协议改为 优先使用 http2，这样并发上限能增加，访问速度会更快
+8. 优化界面体验：增加 loading动画、骨架屏等显示使得观感上更好；长列表使用虚拟滚动；如果可以还可以使用 ssr服务器渲染来进一步提升用户体验。
 
 ## 请求并发的限制
 ### 场景
@@ -333,6 +331,122 @@ threadPool.waitForAllTasks();
 
 > 其实，已经有相关库：`p-limit`
 
+## 移动端开发中有没有遇见什么难点？
+> [记一个几乎零成本的小程序开发过程以及坑](https://juejin.cn/post/7252175375105916965?searchId=20240428174116AAB9A7173879D1183483#heading-3)
+> [https://juejin.cn/post/6844903998269423623?searchId=20240428174116AAB9A7173879D1183483#heading-9](小程序 swiper 如何多页面高度自适应)
+> [记录自己开发微信小程序时踩的坑](https://juejin.cn/post/7041213241246089246?searchId=20240428174116AAB9A7173879D1183483)
+### 视频充当背景图
+> 不考虑浏览器不支持的视频格式与编码的话：
+
+作为背景播放时，
+电脑端一切OK，
+手机端有大问题：
+每个国产品牌的安卓机自带浏览器都有对 video 元素都有些定制化处理，常见且不限于：
+```
+静音视频无法自动播放
+无法隐藏控制条（即使未设置 controls）
+视频为顶级元素无法被覆盖
+视频默认为弹层窗口播放
+更有甚者给你加广告
+```
+方案：
+1. 转GIF，会比原视频更大，帧率越大文件越大，而且基本比视频文件还大
+2. 将视频文件解码成一一帧帧的图片，在 canvas 上按一定速率绘制出来模拟成类似视频的样子（需要上传时将视频进行相应的处理，前端处理的话经过调研对比，复杂且性能不高，而且存在占用内存巨大的问题，划不来，得后端处理更合适） -- 滴滴就是这么做的：https://www.didiglobal.com/
+3. 通过判断属性，在不支持的移动端直接显示一张指定的封面图片，方案有：
+* 精确判断，类似于caniuse的查询，但是引入的库文件比较大
+```js
+可以在网页中使用caniuse-lite库来检测浏览器是否支持某个特定的属性或功能。caniuse-lite是caniuse.com网站的一个轻量级版本，它提供了一个JavaScript API，可以用来查询浏览器对不同Web技术的支持情况。
+
+下面是一个示例代码，它使用caniuse-lite库来检测当前浏览器是否支持<video>元素的playsinline属性：
+
+const caniuse = require('caniuse-lite');
+
+let feature = caniuse.feature(caniuse.features['video-playsinline']);
+let browser = caniuse.getBrowser('chrome'); // replace 'chrome' with the current browser name
+let support = feature.stats[browser.name][browser.version];
+
+console.log('playsinline support:', support);
+此代码将在控制台中输出当前浏览器对playsinline属性的支持情况。请注意，您需要安装并引入caniuse-lite库才能运行此代码。
+```
+* 直接通过js简单判断版本号，粗略但是增加体积小
+
+移动端降级方案，大疆就是如此做的 - https://www.dji.com/cn/mini-se?site=brandsite&from=nav
+
+4. 2方案的变种，将视频转为ts，然后使用jsmpeg库播放，有一个专门的silent-film-player库用于背景视频播放，但也限制了ts格式
+
+### 小程序rpx的坑
+比如实现一个tooltips，它由 一个三角形与一个文本组成，如果两个分别使用rpx定位的话，在部分机型上可能出现不完全贴合，存在缝隙的情况，而这个是因为 小程序官方推荐的rpx计算是通过 750px的屏幕宽度来计算的，1rpx = 设备宽度 / 750 。
+
+而这个逻辑，就可能出现 转换偏差；如果算出来的结果是 小数，因为px本身没有小数，所以显示的时候其实是会对转换出来的数值做向上取整，最后就出现了这个 1px的误差。
+
+解决方案是：两个元素作为一个整体，对它的父节点进行定位。
+
+### iphone手机上底部可能出现的小白条
+```html
+<!-- 来自 - https://juejin.cn/post/7080696205168082975?searchId=2024042818084847CDCC8A86BAF61BA549 -->
+<meta name="viewport" content="...,viewport-fit=cover" />
+body{
+    padding-top: constant(safe-area-inset-top);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+```
+
+### 部分ios机型上的小程序不存在Promise.finally
+```js
+// 1. 不管是 resolve 还是 reject，finally都会执行
+// 2. finally也会继续返回一个promise对象
+if (!Promise.prototype.finally) {
+    Promise.prototype.finally = function (callback) {
+        return this.then(
+            (value) => Promise.resolve(callback()).then(() => value),
+            (reason) =>
+                Promise.resolve(callback()).then(() => {
+                    throw reason;
+                })
+        );
+    };
+}
+```
+
+### 在一个界面弹出输入法时出现整个页面高度缩小，导致页面自动滚动，造成fixed定位错乱
+* 监听resize窗口尺寸变化，利用得到的当前窗口高度，进行兼容性处理
+* 如果输入框在下面 被弹出的键盘挡住，则利用 window.scroll 自动滚动页面来解决遮挡问题
+### 开发板小程序和生产端小程序共用的同一个LocalStorage，导致测试数据与生产数据混合在一起
+通过区分开发环境和生产环境，将其保存的前缀数据区分开来
+
+```js
+const {
+    miniProgram: { envVersion },
+} = wx.getAccountInfoSync();
+let env = "";
+switch (envVersion) {
+    // 开发版
+    case "develop":
+        env = `dev`;
+        break;
+    // 体验版
+    case "trial":
+        env = `dev`;
+        break;
+    // 正式版
+    case "release":
+        env = `prod`;
+        break;
+    default:
+        env = `dev`;
+        break;
+}
+```
+## 在公司项目里有哪些难点让你印象深刻？
+1. 通过富文本编辑编辑后导出PDF时，在导出的时候要计算好，如果某个内容刚好在页与页之间，直接导出的话，这一行内容将会被拦腰隔断，因此我通过使用Canvas判断这些特殊区域的rbga像素点色值来实现了是否自动填充一行空白，以便让其显示到下一页，避免了这一问题。
+2. 在实现订单页 `余额输入框`的时候，在删除几个数字只保留一个数字的时候 输入框的 input事件 监听不到小数点的输入，原因是 `type=number` 时的 `input` 输入框的 `input` 事件是监听不到小数点这个键盘输入事件，最后使用 `tel` 类型的输入框来代替，这样既能在手机上弹出 `数字输入` 也避免了 `电脑浏览器的小数点BUG` ，我们只需要解决 `将输入内容里的非数字和.的字符替换处理` 即可。
+3. 一些新功能，比如微前端接入的时候，由于整个公司没有人做过，自己过去也没有相关的经验，因此就需要自己去市场上调研，纵向对比不同框架的优缺点、原理、用户数等数据，最后根据当前公司技术栈和实际情况，用数据来支撑自己的决策，提交一份分析报告给技术主管并进行最终讨论和确定。
+4. 小程序api变更，每次更新小程序都需要搜索关注下对应的公告或者社区，不然说不准哪个接口不能用了就导致原有功能异常了。
+
+> 上面的代码有点小问题：[如何用html2canvas +jsPDF更简单实现pdf防截断导出（含算法优化）？](https://juejin.cn/post/7256983702811344952)
+
 ## 虚拟滚动场景与如何实现
 
 ## 组件平台有哪些功能？
@@ -360,6 +474,8 @@ threadPool.waitForAllTasks();
 
 ## 微信扫码登录
 > [推荐](https://juejin.cn/post/7243413799347601464)
+
+## 要做一个论坛，你是技术主管，怎么做技术选型
 
 ## 开源项目
 * [vue-vben-admin 基于Vue3的Vue后台管理框架](https://github.com/vbenjs/vue-vben-admin/blob/main/README.zh-CN.md)

@@ -32,6 +32,8 @@ touch demo.ts
 ```bash
 tsc demo.ts
 ```
+
+> 也可以通过 `ts-node`这个库来直接运行 `ts`文件
 ## 开始学习
 > [官方手册](https://www.typescriptlang.org/docs/handbook/basic-types.html)
 ### 与JavaScript的区别
@@ -44,6 +46,17 @@ tsc demo.ts
 const/let/var 变量名:变量类型 = 变量值;
 ```
 其中，`:变量类型`的方式叫做 `类型注解`；注：如果不写类型注解的话，`ts`也是会根据值进行`类型推导`自动推断当前变量的值的！
+##### 类型推导的注意事项
+1. `let`声明的变量，自动推导出来的类型是 `通用类型`，如：`string`、`number`、`boolean`等；
+```ts
+let age = 18;
+// age:number
+```
+1. `const`声明的变量，自动推导出来的类型是 `字面量类型`
+```ts
+let level = 25;
+// level:25
+```
 #### 类成员声明
 1. `public`：默认声明，所有文件都可获取使用该属性
 2. `protected`：只有当前类和其子类可访问该属性
@@ -61,16 +74,22 @@ console.log(notSure)
 notSure = false;
 console.log(notSure)
 ```
+#### unknown
 为啥在有`any`的时候还需要引入`unknown`呢？
+
+原因在于 虽然两者都是表达不确定，但`any`是什么都能干，不限制，而`unknown`是什么都不能干，都被限制，两者在后续操作上是相反的！
+```ts
+let anyVar:any = 111;
+anyVar = 'test';
+// any类型，正常执行！
+```
 ```ts
 let unknownVar:unknown = 111;
-unknownVar = 'test';
-let newVar:string;
-// 不能将类型“unknown”分配给类型“string”。
-newVar = unknownVar;
+unknownVar = 'test'; // 报错！
+if(typeof unknownVar === 'string'){
+    unknownVar = 'test';// 不报错，unknown类型需要 确定类型/类型缩小，才能进行赋值操作
+}
 // 因此，对于unknown类型可以在赋值的时候限制，避免传入个非法的类型
-// 我们需要 newVar = String(unknownVar); 将其转换下
-
 // 而any类型就太过灵活，会导致使用和赋值没有任何影响，失去了ts的特性
 ```
 
@@ -80,7 +99,7 @@ newVar = unknownVar;
 * 即使代码出现错误，依旧会编译为`.js`文件，但是，它会警告提示代码运行结果无法保证。
 
 
-> 常见类型一览表：
+#### 常见类型一览表：
 
 |类型|语法|代码示例|注意事项|
 |:--|:-:|:-:|:-:|
@@ -212,6 +231,7 @@ function sum() {
 ```ts
 const tuple1:[string,number,boolean] = ['元组demo',3,false];
 ```
+一般用于函数的返回值里
 ### 枚举类型
 > js中没有这类型，仿照强类型语言来的。值只能为数字，不定义默认值从0开始。
 ```ts
@@ -224,7 +244,13 @@ let c: Number = Number.two;
 // c = 11
 ```
 > [该处原文](https://juejin.im/post/6844903822981070855)
-
+### 函数类型
+```ts
+function demo(): () => string {
+    return 'hello world!'
+}
+```
+当然，一般是在定义 callback 参数函数时使用，而且一般使用 type 定义后再使用
 ### 对象类型
 ```ts
 let obj: object = {name:'foo'};
@@ -281,6 +307,13 @@ const product:{
     shuxing1:'666',
     shuxing2:'999',
     shuxing3:'奥术大师'
+}
+```
+#### type类型别名 定义一个对象
+```ts
+type Teacher = {
+    name: string,
+    age: number
 }
 ```
 ### 接口interface
@@ -386,7 +419,75 @@ arr[0] = 10 // success
 constArr[0] = 12; // error!
 arr = constArr; // 注意！ 将readonly的值赋值给一个可变得数组也是不行的。
 ```
+#### 接口interface 和 类型别名type的区别
+1. 类型别名使用范围更广，而接口仅支持声明对象
+```ts
+type CustomerId = string;
+type IdType = string | number;
 
+interface Person{
+}
+```
+2. 接口支持多次被重复声明、扩展，而类型别名不支持
+```ts
+type PositionType = {
+    x: number;
+    y: number;
+}
+// 标识符“PositionType”重复。ts(2300)
+// type PositionType = {
+//     z?: number;
+// }
+```
+```ts
+interface PositionType {
+    x: number;
+    y: number;
+}
+interface PositionType {
+    z?: number;
+}
+
+const position: PositionType = { x: 1, y: 2 };
+position.z = 3;
+```
+3. 接口支持继承，而类型别名不支持
+```ts
+interface PositionType {
+    x: number;
+    y: number;
+}
+// 使用 extends 关键字 继承另一个接口
+interface Position3DType extends PositionType {
+    z?: number;
+}
+
+const position: Position3DType = { x: 1, y: 2 };
+position.z = 3;
+```
+4. 接口支持被 `class`实现，而类型别名不支持
+```ts
+interface PositionType {
+    x: number;
+    y: number;
+}
+// 使用 implements 关键字 使用类实现一个接口
+class Position3DType implements PositionType {
+    x: number;
+    y: number;
+    z?: number;
+    constructor(x: number, y: number, z?: number) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+const position = new Position3DType(1, 3, 4);
+position.z = 3;
+```
+
+综上所述：定义对象类型一般使用 `interface`，定义非对象类型一般使用 `type`
 #### 接口支持对 函数使用的：
 
 ![](https://cdn.jsdelivr.net/gh/Huansheng1/myimg/PicGo/20200830112942.png)
